@@ -10,11 +10,12 @@ import (
 )
 
 type params struct {
-	User            string    `env:"PROXY_USER" envDefault:""`
-	Password        string    `env:"PROXY_PASSWORD" envDefault:""`
-	Port            string    `env:"PROXY_PORT" envDefault:"1080"`
-	AllowedDestFqdn string    `env:"ALLOWED_DEST_FQDN" envDefault:""`
-	AllowedIPs      []string  `env:"ALLOWED_IPS" envSeparator:"," envDefault:""`
+	User            string   `env:"PROXY_USER" envDefault:""`
+	Password        string   `env:"PROXY_PASSWORD" envDefault:""`
+	Port            string   `env:"PROXY_PORT" envDefault:"1080"`
+	AllowedDestFqdn string   `env:"ALLOWED_DEST_FQDN" envDefault:""`
+	AllowedIPs      []string `env:"ALLOWED_IPS" envSeparator:"," envDefault:""`
+	LogTarget       string   `env:"LOG_TARGET" envDefault:"true"`
 }
 
 func main() {
@@ -40,6 +41,12 @@ func main() {
 
 	if cfg.AllowedDestFqdn != "" {
 		socks5conf.Rules = PermitDestAddrPattern(cfg.AllowedDestFqdn)
+	}
+
+	if cfg.LogTarget != "" {
+		middleware := LogTarget(socks5conf.Rules)
+		socks5conf.Rules = middleware
+		socks5conf.Resolver = middleware
 	}
 
 	server, err := socks5.New(socks5conf)
